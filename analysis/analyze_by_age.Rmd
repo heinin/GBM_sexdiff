@@ -1,0 +1,644 @@
+---
+title: "Analysis by age and gender, TME/leukapheresis/CSF/CAR product"
+author: "heinin"
+date: "2024-11-13"
+output:
+  workflowr::wflow_html:
+    code_folding: hide
+  html_notebook: default
+editor_options:
+  chunk_output_type: console
+---
+
+## Analysis of cell type proportions and gene expression by age and gender
+
+### Libraries, helper functions, and environment variables
+
+```{r, message = F, warning = F}
+
+library(workflowr)
+library(Seurat)
+library(googlesheets4)
+library(dplyr)
+library(tidyverse)
+library(ggrepel)
+library(patchwork)
+library(ggcorrplot)
+
+source("/home/hnatri/GBM_sexdiff/code/CART_plot_functions.R")
+source("/home/hnatri/GBM_sexdiff/code/13384_age_sex_themes.R")
+
+setwd("/home/hnatri/GBM_sexdiff/")
+
+set.seed(1234)
+options(future.globals.maxSize = 30000 * 1024^2)
+reduction <- "integrated_sct_umap"
+
+```
+
+### Import data
+
+```{r, message = F, warning = F, fig.width = 4, fig.height = 3}
+
+immune_fibro <- readRDS("/tgen_labs/banovich/BCTCSF/Heini/13384_Tumor/tumor_immune_fibroblast_reclustered_DoubletFinder.rds")
+
+leukPBMC <- readRDS("/tgen_labs/banovich/BCTCSF/Heini/13384_leukPBMC/CITE_nonCITE_leukPBMC_integrated_merged_AzimuthAnnot.rds")
+
+#CSF <- readRDS("/tgen_labs/banovich/BCTCSF/Heini/13384_CSF_PBMC/13384_csf_integrated_TCR.rds")
+
+object_list <- list("immune_fibro" = immune_fibro,
+                    "leukPBMC" = leukPBMC)
+                    #"CSF" = CSF)
+
+# Adding demographic info and IDH status
+demographics <- read.csv("/home/hnatri/GBM_sexdiff/data/13384_demographic_info.csv",
+                         row.names = 1)
+
+gs4_deauth()
+idh_info  <- gs4_get("https://docs.google.com/spreadsheets/d/1ApwXjEVtpPB87al6q3ab8TKvZYJTh3iNH1cuO-A_OoU/edit?usp=sharing")
+idh_info <- read_sheet(idh_info, sheet = "Clinical info")
+
+object_list <- lapply(object_list, function(xx){
+  xx$Gender <- mapvalues(x = xx$UPN,
+                         from = demographics$UPN,
+                         to = demographics$GENDER)
+  xx$Age <- mapvalues(x = xx$UPN,
+                      from = demographics$UPN,
+                      to = demographics$Age)
+  xx$Race <- mapvalues(x = xx$UPN,
+                       from = demographics$UPN,
+                       to = demographics$RACE_STD)
+  xx$Ethnicity <- mapvalues(x = xx$UPN,
+                            from = demographics$UPN,
+                            to = demographics$ETHNICITY_STD)
+  xx@meta.data$IDH <- mapvalues(xx$UPN,
+                                from = idh_info$UPN,
+                                to = idh_info$idh_mutated) %>%
+  unlist() %>%
+  as.numeric()
+  
+  xx@meta.data$IDH[-which(xx@meta.data$UPN %in% idh_info$UPN)] <- NA
+  xx$IDH <- gsub(0, "N", xx$IDH)
+  xx$IDH <- gsub(1, "Y", xx$IDH)
+  
+  xx
+})
+
+# No demographic info for 208?
+object_list[["leukPBMC"]] <- subset(object_list[["leukPBMC"]], subset = UPN %in% c(208), invert = T)
+
+# Numbers of samples by group
+n_samples <- object_list[["immune_fibro"]]@meta.data %>%
+  dplyr::select(UPN, Gender, CD3_high_low, binary_response, IDH) %>%
+  distinct()
+
+table(n_samples$Gender)
+table(n_samples$Gender, n_samples$IDH)
+table(n_samples$Gender, n_samples$binary_response)
+table(n_samples$IDH, n_samples$binary_response)
+
+```
+
+## TME (immune cells + fibroblasts)
+
+### Cell type proportions by age
+
+```{r, message = F, warning = F, fig.width = 6, fig.height = 3}
+
+# Linear regression by celltype, not stratifying by gender
+prop_table <- as.data.frame(table(as.character(object_list[["immune_fibro"]]$UPN), object_list[["immune_fibro"]]$celltype))
+colnames(prop_table) <- c("UPN", "celltype", "Freq")
+prop_table <- spread(prop_table, celltype, Freq)
+prop_table[,2:length(prop_table)] <- (prop_table[,2:length(prop_table)]/rowSums(prop_table[,2:length(prop_table)]))*100
+prop_table <- gather(prop_table, celltype, Freq, names(prop_table)[2:length(names(prop_table))], factor_key=TRUE)
+prop_table$Age  <- mapvalues(x = prop_table$UPN,
+                             from = demographics$UPN,
+                             to = demographics$Age)
+prop_table$Age <- as.numeric(as.character(prop_table$Age))
+prop_table$Gender  <- mapvalues(x = prop_table$UPN,
+                                from = demographics$UPN,
+                                to = demographics$GENDER)
+
+ct_prop_res <- as.data.frame(matrix(NA, nrow = length(unique(prop_table$celltype)),
+                                    ncol = 3))
+colnames(ct_prop_res) <- c("celltype", "R2", "p")
+ct_prop_res$celltype <- sort(unique(prop_table$celltype))
+
+for(ct in unique(ct_prop_res$celltype)){
+    data_subset <- prop_table %>% filter(celltype == ct)
+    #if(nrow(data_subset)<2){
+    #  next
+    #} else {
+    lm_res <- lm(Freq~Age, data = data_subset)
+    pval <- summary(lm_res)$coefficients[,4][2]
+    r2 <- summary(lm_res)$r.squared
+    
+    ct_prop_res[which(ct_prop_res$celltype == ct),]$R2 <- r2
+    ct_prop_res[which(ct_prop_res$celltype == ct),]$p <- as.numeric(pval)
+}
+
+ct_prop_res
+
+ct_prop_res %>% dplyr::select(c("celltype", "R2")) %>%
+  ggplot(aes(x = celltype, y = R2, fill = celltype)) +
+    geom_bar(stat="identity", position='stack', width = 0.8) +
+    scale_fill_manual(name = "celltype", values = immune_fibro_celltype_col) + 
+    theme_bw() +
+    xlab("Cell type") + 
+    ylab("R2 of celltype abundance by age") +
+    theme(legend.position = "none") + 
+    theme(panel.background = element_rect(colour = "gray88")) +
+    theme(plot.margin = margin(0.3, 0.3, 0.3,0.3, "cm"))
+
+```
+
+Plotting cell type proportions by age
+
+```{r, message = F, warning = F, fig.width = 12, fig.height = 12}
+
+prop_table %>%
+  ggplot(aes(x = Age, y = Freq, color = celltype)) +
+    geom_point() +
+    scale_color_manual(name = "celltype", values = immune_fibro_celltype_col) + 
+    theme_bw() +
+    xlab("Age") + 
+    ylab("Cell type abundance") + 
+    theme(legend.position = "none") + 
+    theme(panel.background = element_rect(colour = "gray88")) +
+    theme(plot.margin = margin(0.3, 0.3, 0.3,0.3, "cm")) +
+    geom_smooth(method = "lm", se = T, formula = y ~ x) +
+    facet_wrap(~celltype, scales = "free")
+
+```
+
+### Cell type proportions by gender and age
+
+```{r, message = F, warning = F, fig.width = 5, fig.height = 5}
+
+# Linear regression by celltype
+ct_prop_res_gender <- as.data.frame(matrix(NA, nrow = 2*length(unique(prop_table$celltype)),
+                                    ncol = 4))
+colnames(ct_prop_res_gender) <- c("gender", "celltype", "R2", "p")
+ct_prop_res_gender$celltype <- rep(sort(unique(prop_table$celltype)), 2)
+ct_prop_res_gender$gender <- c(rep(c("Male"), length(unique(prop_table$celltype))),
+                               rep(c("Female"), length(unique(prop_table$celltype))))
+
+
+for(ct in unique(ct_prop_res_gender$celltype)){
+  for(gender in c("Male", "Female")){
+    data_subset <- prop_table %>% filter(celltype == ct,
+                                         Gender == gender)
+    #if(nrow(data_subset)<2){
+    #  next
+    #} else {
+    lm_res <- lm(Freq~Age, data = data_subset)
+    pval <- summary(lm_res)$coefficients[,4][2]
+    r2 <- summary(lm_res)$r.squared
+    
+    ct_prop_res_gender[which(ct_prop_res_gender$celltype == ct & ct_prop_res_gender$gender == gender),]$R2 <- r2
+    ct_prop_res_gender[which(ct_prop_res_gender$celltype == ct & ct_prop_res_gender$gender == gender),]$p <- as.numeric(pval)
+    }
+}
+
+ct_prop_res_gender
+
+ct_prop_res_gender %>% dplyr::select(c("celltype", "R2", "gender")) %>%
+  pivot_wider(values_from = "R2", names_from = "gender") %>%
+  ggplot(aes(x = Male, y = Female, color = celltype, label = celltype)) +
+    geom_point() +
+    scale_color_manual(name = "celltype", values = immune_fibro_celltype_col) + 
+    theme_bw() +
+    xlab("R2 of cell type abundance correlation with with age, male") + 
+    ylab("R2 of cell type abundance correlation with with age, female") + 
+    geom_text_repel(size = 2.5) +
+    theme(legend.position = "none") + 
+    geom_abline(intercept = 0, slope = 1, linewidth = 0.5, linetype = "dashed") +
+    theme(panel.background = element_rect(colour = "gray88")) +
+    theme(plot.margin = margin(0.3, 0.3, 0.3,0.3, "cm"))
+
+```
+
+```{r, message = F, warning = F, fig.width = 12, fig.height = 4}
+
+ct_prop_res_gender %>% dplyr::select(c("celltype", "R2", "gender")) %>%
+  ggplot(aes(x = celltype, y = R2, fill = celltype)) +
+    geom_bar(stat="identity", position='stack', width = 0.8) +
+    scale_fill_manual(name = "celltype", values = immune_fibro_celltype_col) + 
+    theme_bw() +
+    xlab("Cell type") + 
+    ylab("R2 of celltype abundance by age") +
+    theme(legend.position = "none") + 
+    theme(panel.background = element_rect(colour = "gray88")) +
+    theme(plot.margin = margin(0.3, 0.3, 0.3,0.3, "cm")) +
+    facet_wrap(~gender, scales = "fixed")
+
+```
+
+Plotting cell type proportions by age and gender
+
+```{r, message = F, warning = F, fig.width = 20, fig.height = 25}
+
+prop_table %>%
+  ggplot(aes(x = Age, y = Freq, color = celltype)) +
+    geom_point() +
+    scale_color_manual(name = "celltype", values = immune_fibro_celltype_col) + 
+    theme_bw() +
+    xlab("Age") + 
+    ylab("Cell type abundance") + 
+    theme(legend.position = "none") + 
+    theme(panel.background = element_rect(colour = "gray88")) +
+    theme(plot.margin = margin(0.3, 0.3, 0.3,0.3, "cm")) +
+    geom_smooth(method = "lm", se = T, formula = y ~ x) +
+    facet_wrap(~celltype+Gender, scales = "free", ncol = 6)
+
+```
+
+### Multiple variate regression by age and gender
+
+```{r, message = F, warning = F, fig.width = 10, fig.height = 10}
+
+prop_table$Gender_num <- ifelse(prop_table$Gender == "Male", 1,
+                                ifelse(prop_table$Gender == "Female", 0, NA))
+
+ct_prop_res_multivar <- as.data.frame(matrix(NA, nrow = length(unique(prop_table$celltype)),
+                                    ncol = 5))
+colnames(ct_prop_res_multivar) <- c("celltype", "R2", "pval_intercept", "pval_age", "pval_gender")
+ct_prop_res_multivar$celltype <- sort(unique(prop_table$celltype))
+
+for(ct in unique(ct_prop_res_multivar$celltype)){
+    data_subset <- prop_table %>% filter(celltype == ct)
+    #if(nrow(data_subset)<2){
+    #  next
+    #} else {
+    lm_res <- lm(Freq ~ Age + Gender_num, data = data_subset)
+    pval_intercept <- summary(lm_res)$coefficients[,4][1]
+    pval_age <- summary(lm_res)$coefficients[,4][2]
+    pval_gender <- summary(lm_res)$coefficients[,4][3]
+    r2 <- summary(lm_res)$r.squared
+    
+    ct_prop_res_multivar[which(ct_prop_res_multivar$celltype == ct),]$R2 <- r2
+    ct_prop_res_multivar[which(ct_prop_res_multivar$celltype == ct),]$pval_intercept <- as.numeric(pval_intercept)
+    ct_prop_res_multivar[which(ct_prop_res_multivar$celltype == ct),]$pval_age <- as.numeric(pval_age)
+    ct_prop_res_multivar[which(ct_prop_res_multivar$celltype == ct),]$pval_gender <- as.numeric(pval_gender)
+}
+
+ct_prop_res_multivar %>%
+  arrange(pval_intercept)# %>% filter(pval_intercept < 0.1)
+
+# Data for a correlation plot
+prop_table_corr <- prop_table %>%
+  pivot_wider(names_from = celltype, values_from = Freq) %>%
+  dplyr::select(-c("UPN", "Gender"))
+
+# Compute correlation at 2 decimal places
+corr_matrix <- round(cor(prop_table_corr), 2)
+
+# Plot
+ggcorrplot(corr_matrix, hc.order = TRUE, type = "lower",
+          lab = TRUE, lab_size = 3)
+
+```
+
+```{r, message = F, warning = F, fig.width = 10, fig.height = 10}
+
+plot_cts <- ct_prop_res_multivar %>% filter(pval_intercept < 0.1) %>%
+  dplyr::select(celltype) %>%
+  unlist()
+
+prop_table %>%
+  filter(celltype %in% plot_cts) %>%
+  ggplot(aes(x = Age, y = Freq, color = celltype)) +
+    geom_point() +
+    scale_color_manual(name = "celltype", values = immune_fibro_celltype_col) + 
+    theme_bw() +
+    xlab("Age") + 
+    ylab("Cell type abundance") + 
+    theme(legend.position = "none") + 
+    theme(panel.background = element_rect(colour = "gray88")) +
+    theme(plot.margin = margin(0.3, 0.3, 0.3,0.3, "cm")) +
+    geom_smooth(method = "lm", se = T, formula = y ~ x) +
+    facet_wrap(~celltype+Gender, scales = "free", ncol = 4)
+
+```
+
+## Leukapheresis PBMCs
+
+```{r, message = F, warning = F, fig.width = 6, fig.height = 6}
+
+DimPlot(leukPBMC,
+        group.by = "celltype.l1",
+        cols = leukPBMC_celltype_1_col,
+        reduction = "wnn.umap",
+        label = T,
+        label.box = T,
+        label.size = 3,
+        repel = T,
+        raster = T,
+        raster.dpi = c(1024, 1024),
+        pt.size = 3) +
+  ggtitle("Cell type") +
+  theme_classic() +
+  NoLegend() +
+  NoAxes() +
+  coord_fixed(1)
+
+DimPlot(leukPBMC,
+        group.by = "celltype.l2",
+        cols = leukPBMC_celltype_2_col,
+        reduction = "wnn.umap",
+        label = T,
+        label.box = T,
+        label.size = 3,
+        repel = T,
+        raster = T,
+        raster.dpi = c(1024, 1024),
+        pt.size = 3) +
+  ggtitle("Cell type") +
+  theme_classic() +
+  NoLegend() +
+  NoAxes() +
+  coord_fixed(1)
+
+DimPlot(leukPBMC,
+        group.by = "celltype.l3",
+        #cols = leukPBMC_celltype_col,
+        reduction = "wnn.umap",
+        label = T,
+        label.box = T,
+        label.size = 3,
+        repel = T,
+        raster = T,
+        raster.dpi = c(1024, 1024),
+        pt.size = 3) +
+  ggtitle("Cell type") +
+  theme_classic() +
+  NoLegend() +
+  NoAxes() +
+  coord_fixed(1)
+
+```
+
+Cell numbers by cell type
+
+```{r, message = F, warning = F, fig.width = 6, fig.height = 4}
+
+table(leukPBMC$celltype.l2) %>%
+  as.data.frame() %>%
+  ggplot(aes(x = reorder(Var1, -Freq), y = Freq)) + 
+  geom_bar(stat = "identity") +
+  theme_minimal() +
+  RotatedAxis() +
+  xlab("Cell type (l2)") +
+  ylab("# cells")
+
+```
+
+Only analyzing cell types with >10 samples with >10 cells
+
+```{r, message = F, warning = F, fig.width = 6, fig.height = 4}
+
+
+```
+
+### Cell type proportions by age
+
+```{r, message = F, warning = F, fig.width = 6, fig.height = 4}
+
+# Linear regression by celltype, not stratifying by gender
+prop_table <- as.data.frame(table(as.character(object_list[["leukPBMC"]]$UPN), object_list[["leukPBMC"]]$celltype.l2))
+colnames(prop_table) <- c("UPN", "celltype", "Freq")
+prop_table <- spread(prop_table, celltype, Freq)
+prop_table[,2:length(prop_table)] <- (prop_table[,2:length(prop_table)]/rowSums(prop_table[,2:length(prop_table)]))*100
+prop_table <- gather(prop_table, celltype, Freq, names(prop_table)[2:length(names(prop_table))], factor_key=TRUE)
+prop_table$Age  <- mapvalues(x = prop_table$UPN,
+                             from = demographics$UPN,
+                             to = demographics$Age)
+prop_table$Age <- as.numeric(as.character(prop_table$Age))
+prop_table$Gender  <- mapvalues(x = prop_table$UPN,
+                                from = demographics$UPN,
+                                to = demographics$GENDER)
+
+ct_prop_res <- as.data.frame(matrix(NA, nrow = length(unique(prop_table$celltype)),
+                                    ncol = 3))
+colnames(ct_prop_res) <- c("celltype", "R2", "p")
+ct_prop_res$celltype <- sort(unique(prop_table$celltype))
+
+for(ct in unique(ct_prop_res$celltype)){
+    data_subset <- prop_table %>% filter(celltype == ct)
+    #if(nrow(data_subset)<2){
+    #  next
+    #} else {
+    lm_res <- lm(Freq~Age, data = data_subset)
+    pval <- summary(lm_res)$coefficients[,4][2]
+    r2 <- summary(lm_res)$r.squared
+    
+    ct_prop_res[which(ct_prop_res$celltype == ct),]$R2 <- r2
+    ct_prop_res[which(ct_prop_res$celltype == ct),]$p <- as.numeric(pval)
+}
+
+ct_prop_res
+
+ct_prop_res %>% dplyr::select(c("celltype", "R2")) %>%
+  ggplot(aes(x = celltype, y = R2, fill = celltype)) +
+    geom_bar(stat="identity", position='stack', width = 0.8) +
+    scale_fill_manual(name = "celltype", values = leukPBMC_celltype_2_col) + 
+    theme_bw() +
+    xlab("Cell type") + 
+    ylab("R2 of celltype abundance by age") +
+    theme(legend.position = "none") + 
+    theme(panel.background = element_rect(colour = "gray88")) +
+    theme(plot.margin = margin(0.3, 0.3, 0.3,0.3, "cm")) +
+    RotatedAxis()
+
+```
+
+Plotting cell type proportions by age
+
+```{r, message = F, warning = F, fig.width = 16, fig.height = 12}
+
+prop_table %>%
+  ggplot(aes(x = Age, y = Freq, color = celltype)) +
+    geom_point() +
+    scale_color_manual(name = "celltype", values = leukPBMC_celltype_2_col) + 
+    theme_bw() +
+    xlab("Age") + 
+    ylab("Cell type abundance") + 
+    theme(legend.position = "none") + 
+    theme(panel.background = element_rect(colour = "gray88")) +
+    theme(plot.margin = margin(0.3, 0.3, 0.3,0.3, "cm")) +
+    geom_smooth(method = "lm", se = T, formula = y ~ x) +
+    facet_wrap(~celltype, scales = "free")
+
+```
+
+### Cell type proportions by gender and age
+
+```{r, message = F, warning = F, fig.width = 5, fig.height = 5}
+
+# Linear regression by celltype
+ct_prop_res_gender <- as.data.frame(matrix(NA, nrow = 2*length(unique(prop_table$celltype)),
+                                    ncol = 4))
+colnames(ct_prop_res_gender) <- c("gender", "celltype", "R2", "p")
+ct_prop_res_gender$celltype <- rep(sort(unique(prop_table$celltype)), 2)
+ct_prop_res_gender$gender <- c(rep(c("Male"), length(unique(prop_table$celltype))),
+                               rep(c("Female"), length(unique(prop_table$celltype))))
+
+
+for(ct in unique(ct_prop_res_gender$celltype)){
+  for(gender in c("Male", "Female")){
+    data_subset <- prop_table %>% filter(celltype == ct,
+                                         Gender == gender)
+    #if(nrow(data_subset)<2){
+    #  next
+    #} else {
+    lm_res <- lm(Freq~Age, data = data_subset)
+    pval <- summary(lm_res)$coefficients[,4][2]
+    r2 <- summary(lm_res)$r.squared
+    
+    ct_prop_res_gender[which(ct_prop_res_gender$celltype == ct & ct_prop_res_gender$gender == gender),]$R2 <- r2
+    ct_prop_res_gender[which(ct_prop_res_gender$celltype == ct & ct_prop_res_gender$gender == gender),]$p <- as.numeric(pval)
+    }
+}
+
+ct_prop_res_gender
+
+ct_prop_res_gender %>% dplyr::select(c("celltype", "R2", "gender")) %>%
+  pivot_wider(values_from = "R2", names_from = "gender") %>%
+  ggplot(aes(x = Male, y = Female, color = celltype, label = celltype)) +
+    geom_point() +
+    scale_color_manual(name = "celltype", values = leukPBMC_celltype_2_col) + 
+    theme_bw() +
+    xlab("R2 of cell type abundance correlation with with age, male") + 
+    ylab("R2 of cell type abundance correlation with with age, female") + 
+    geom_text_repel(size = 2.5) +
+    theme(legend.position = "none") + 
+    geom_abline(intercept = 0, slope = 1, linewidth = 0.5, linetype = "dashed") +
+    theme(panel.background = element_rect(colour = "gray88")) +
+    theme(plot.margin = margin(0.3, 0.3, 0.3,0.3, "cm"))
+
+```
+
+```{r, message = F, warning = F, fig.width = 12, fig.height = 4}
+
+ct_prop_res_gender %>% dplyr::select(c("celltype", "R2", "gender")) %>%
+  ggplot(aes(x = celltype, y = R2, fill = celltype)) +
+    geom_bar(stat="identity", position='stack', width = 0.8) +
+    scale_fill_manual(name = "celltype", values = leukPBMC_celltype_2_col) + 
+    theme_bw() +
+    xlab("Cell type") + 
+    ylab("R2 of celltype abundance by age") +
+    theme(legend.position = "none") + 
+    theme(panel.background = element_rect(colour = "gray88")) +
+    theme(plot.margin = margin(0.3, 0.3, 0.3,0.3, "cm")) +
+    facet_wrap(~gender, scales = "fixed") +
+  RotatedAxis()
+
+```
+
+Plotting cell type proportions by age and gender
+
+```{r, message = F, warning = F, fig.width = 20, fig.height = 28}
+
+prop_table %>%
+  ggplot(aes(x = Age, y = Freq, color = celltype)) +
+    geom_point() +
+    scale_color_manual(name = "celltype", values = leukPBMC_celltype_2_col) + 
+    theme_bw() +
+    xlab("Age") + 
+    ylab("Cell type abundance") + 
+    theme(legend.position = "none") + 
+    theme(panel.background = element_rect(colour = "gray88")) +
+    theme(plot.margin = margin(0.3, 0.3, 0.3,0.3, "cm")) +
+    geom_smooth(method = "lm", se = T, formula = y ~ x) +
+    facet_wrap(~celltype+Gender, scales = "free", ncol = 6)
+
+```
+
+### Multiple variate regression by age and gender
+
+```{r, message = F, warning = F, fig.width = 10, fig.height = 10}
+
+prop_table$Gender_num <- ifelse(prop_table$Gender == "Male", 1,
+                                ifelse(prop_table$Gender == "Female", 0, NA))
+
+ct_prop_res_multivar <- as.data.frame(matrix(NA, nrow = length(unique(prop_table$celltype)),
+                                    ncol = 5))
+colnames(ct_prop_res_multivar) <- c("celltype", "R2", "pval_intercept", "pval_age", "pval_gender")
+ct_prop_res_multivar$celltype <- sort(unique(prop_table$celltype))
+
+for(ct in unique(ct_prop_res_multivar$celltype)){
+    data_subset <- prop_table %>% filter(celltype == ct)
+    #if(nrow(data_subset)<2){
+    #  next
+    #} else {
+    lm_res <- lm(Freq ~ Age + Gender_num, data = data_subset)
+    pval_intercept <- summary(lm_res)$coefficients[,4][1]
+    pval_age <- summary(lm_res)$coefficients[,4][2]
+    pval_gender <- summary(lm_res)$coefficients[,4][3]
+    r2 <- summary(lm_res)$r.squared
+    
+    ct_prop_res_multivar[which(ct_prop_res_multivar$celltype == ct),]$R2 <- r2
+    ct_prop_res_multivar[which(ct_prop_res_multivar$celltype == ct),]$pval_intercept <- as.numeric(pval_intercept)
+    ct_prop_res_multivar[which(ct_prop_res_multivar$celltype == ct),]$pval_age <- as.numeric(pval_age)
+    ct_prop_res_multivar[which(ct_prop_res_multivar$celltype == ct),]$pval_gender <- as.numeric(pval_gender)
+}
+
+ct_prop_res_multivar %>%
+  arrange(pval_intercept)# %>% filter(pval_intercept < 0.1)
+
+# Data for a correlation plot
+prop_table_corr <- prop_table %>%
+  pivot_wider(names_from = celltype, values_from = Freq) %>%
+  dplyr::select(-c("UPN", "Gender"))
+
+# Compute correlation at 2 decimal places
+corr_matrix <- round(cor(prop_table_corr), 2)
+
+# Plot
+#ggcorrplot(corr_matrix, hc.order = TRUE, type = "lower",
+#          lab = TRUE, lab_size = 3)
+
+```
+
+```{r, message = F, warning = F, fig.width = 10, fig.height = 20}
+
+plot_cts <- ct_prop_res_multivar %>% filter(pval_intercept < 0.1) %>%
+  dplyr::select(celltype) %>%
+  unlist()
+
+prop_table %>%
+  filter(celltype %in% plot_cts) %>%
+  ggplot(aes(x = Age, y = Freq, color = celltype)) +
+    geom_point() +
+    scale_color_manual(name = "celltype", values = leukPBMC_celltype_2_col) + 
+    theme_bw() +
+    xlab("Age") + 
+    ylab("Cell type abundance") + 
+    theme(legend.position = "none") + 
+    theme(panel.background = element_rect(colour = "gray88")) +
+    theme(plot.margin = margin(0.3, 0.3, 0.3,0.3, "cm")) +
+    geom_smooth(method = "lm", se = T, formula = y ~ x) +
+    facet_wrap(~celltype+Gender, scales = "free", ncol = 4)
+
+```
+
+
+## Gene expression correlation by age, gender, and cell type
+
+Pseudobulking by cell type and by compartment (myeloid, lymphoid, fibroblast)
+
+```{r, message = F, warning = F, fig.width = 4, fig.height = 3}
+
+# AverageExpression or AggregateExpression
+#ave_exp_mx <- AverageExpression(subset(immune_fibro, subset = cellname %in% keep),
+#                                  group.by = c("annot"),
+#                                  assay = "RNA",
+#                                  layer = "counts",
+#                                  normalization.method = "LogNormalize",
+#                                  return.seurat = F)
+#ave_exp_mx <- as.data.frame(ave_exp_mx$RNA)
+
+
+```
+
+

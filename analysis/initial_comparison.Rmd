@@ -1,0 +1,309 @@
+---
+title: "Initial comparative analysis"
+author: "heinin"
+date: "2024-06-11"
+output:
+  workflowr::wflow_html:
+    code_folding: hide
+  html_notebook: default
+editor_options:
+  chunk_output_type: console
+---
+
+## Comparative analysis of cell type proportions and gene expression
+
+### Libraries, helper functions, and environment variables
+
+```{r, message = F, warning = F}
+
+library(workflowr)
+library(Seurat)
+library(googlesheets4)
+library(dplyr)
+library(tidyverse)
+library(ggrepel)
+library(patchwork)
+library(scProportionTest)
+
+source("/home/hnatri/GBM_sexdiff/code/CART_plot_functions.R")
+source("/home/hnatri/GBM_sexdiff/code/13384_tumor_ms_themes.R")
+
+setwd("/home/hnatri/GBM_sexdiff/")
+
+set.seed(1234)
+options(future.globals.maxSize = 30000 * 1024^2)
+reduction <- "integrated_sct_umap"
+
+```
+
+### Import data
+```{r, message = F, warning = F, fig.width = 4, fig.height = 3}
+
+immune_fibro <- readRDS("/tgen_labs/banovich/BCTCSF/Heini/13384_Tumor/tumor_immune_fibroblast_reclustered_DoubletFinder.rds")
+
+# Adding sex variable
+demographics <- read.csv("/home/hnatri/GBM_sexdiff/data/13384_demographic_info.csv",
+                         row.names = 1)
+
+immune_fibro$Gender <- mapvalues(x = immune_fibro$UPN,
+                                 from = demographics$UPN,
+                                 to = demographics$GENDER)
+
+n_samples <- immune_fibro@meta.data %>%
+  dplyr::select(UPN, Gender, CD3_high_low, binary_response) %>%
+  distinct()
+
+table(n_samples$Gender)
+
+p1 <- ComplexHeatmap::pheatmap(table(n_samples$Gender, n_samples$binary_response),
+                               main = "Response",
+                               legend = TRUE,
+                               cluster_rows = FALSE,
+                               cluster_cols = FALSE,
+                               display_numbers = table(n_samples$Gender, n_samples$binary_response),
+                               color = c("white", "tomato2"),
+                               heatmap_legend_param = list(title = "# Donors",
+                                                           at = c(0, 10, 20)))
+
+p2 <- ComplexHeatmap::pheatmap(table(n_samples$Gender, n_samples$CD3_high_low),
+                               main = "CD3 score",
+                               legend = TRUE,
+                               cluster_rows = FALSE,
+                               cluster_cols = FALSE,
+                               display_numbers = table(n_samples$Gender, n_samples$CD3_high_low),
+                               color = c("white", "tomato2"),
+                               heatmap_legend_param = list(title = "# Donors",
+                                                           at = c(0, 10, 20)))
+       
+p1 + p2
+
+```
+
+### Cell type proportion differences
+
+```{r, message = F, warning = F, fig.height=4, fig.width=4}
+
+p1 <- DimPlot(immune_fibro,
+              group.by = "celltype",
+              cols = immune_fibro_celltype_col,
+              reduction = "umap",
+              label = T,
+              label.box = T,
+              label.size = 3,
+              repel = T,
+              raster = T,
+              raster.dpi = c(1024, 1024),
+              pt.size = 3) +
+        ggtitle("") +
+        theme_classic() +
+        NoLegend() +
+        NoAxes() +
+        coord_fixed(1)
+
+p2 <- create_clusterpropplot(seurat_object = immune_fibro,
+                             group_var = "Gender",
+                             group2 = "Male",
+                             group1 = "Female",
+                             plot_var = "celltype",
+                             plot_colors = immune_fibro_celltype_col,
+                             var_names = c("Male", "Female"),
+                             legend_title = "")
+
+p1
+
+p2
+
+```
+
+```{r, message = F, warning = F, fig.height=5, fig.width=3}
+
+# Using scProportionTest
+prop_test <- sc_utils(immune_fibro)
+
+# Permutation testing and bootstrapping
+prop_test <- permutation_test(
+  prop_test, cluster_identity = "celltype",
+  sample_1 = "Female", sample_2 = "Male",
+  sample_identity = "Gender")
+
+perm_plot <- permutation_plot(prop_test)
+
+perm_plot + scale_colour_manual(values = c("tomato", "azure2")) + NoLegend()
+
+```
+
+### Response-comparison on cell type proportions within each sex
+
+```{r, message = F, warning = F, fig.height=5, fig.width=6}
+
+m_seurat <- subset(immune_fibro, subset = Gender == "Male")
+f_seurat <- subset(immune_fibro, subset = Gender == "Female")
+
+p1 <- create_clusterpropplot(seurat_object = m_seurat,
+                             group_var = "binary_response",
+                             group2 = "PD",
+                             group1 = "CR_SD",
+                             plot_var = "celltype",
+                             plot_colors = immune_fibro_celltype_col,
+                             var_names = c("PD", "CR/SD"),
+                             legend_title = "") +
+  ggtitle("Male")
+
+p2 <- create_clusterpropplot(seurat_object = f_seurat,
+                             group_var = "binary_response",
+                             group2 = "PD",
+                             group1 = "CR_SD",
+                             plot_var = "celltype",
+                             plot_colors = immune_fibro_celltype_col,
+                             var_names = c("PD", "CR/SD"),
+                             legend_title = "") +
+  ggtitle("Female")
+
+p1 + p2
+
+```
+
+
+```{r, message = F, warning = F, fig.height=5, fig.width=6}
+
+m_prop_test <- sc_utils(m_seurat)
+
+m_prop_test <- permutation_test(
+  m_prop_test, cluster_identity = "celltype",
+  sample_1 = "CR_SD", sample_2 = "PD",
+  sample_identity = "binary_response")
+
+m_perm_plot <- permutation_plot(m_prop_test)
+
+m_perm_plot <- m_perm_plot +
+  scale_colour_manual(values = c("tomato", "azure2")) +
+  NoLegend() +
+  ggtitle("Male")
+
+f_prop_test <- sc_utils(f_seurat)
+
+f_prop_test <- permutation_test(
+  f_prop_test, cluster_identity = "celltype",
+  sample_1 = "CR_SD", sample_2 = "PD",
+  sample_identity = "binary_response")
+
+f_perm_plot <- permutation_plot(f_prop_test)
+
+f_perm_plot <- f_perm_plot +
+  scale_colour_manual(values = c("tomato", "azure2")) +
+  NoLegend() +
+  ggtitle("Female")
+
+m_perm_plot + f_perm_plot
+
+```
+
+### Differential gene expression
+
+```{r, message = F, warning = F, fig.height = 4, fig.width = 6}
+
+get_DEGs <- function(seurat_object, group_by, ident.1, ident.2){
+  # Looping through celltypes
+  DEG_list <- lapply(unique(seurat_object$celltype), function(xx){
+    #message(xx)
+    data_subset <- subset(seurat_object, subset = celltype == xx)
+    Idents(data_subset) <- data_subset@meta.data[,group_by]
+    
+    if (min(table(data_subset@meta.data[,group_by]))<10){
+      return(NULL)
+    }
+    
+    if (all((c(ident.1, ident.2) %in% data_subset@meta.data[,group_by]) == c(T, T))){
+      markers <- FindMarkers(data_subset,
+                             ident.1 = ident.1,
+                             ident.2 = ident.2,
+                             assay = "RNA",
+                             verbose = F)
+      markers$feature <- rownames(markers)
+      markers$celltype <- xx
+      
+      return(markers)
+    } else {
+      return(NULL)
+  }
+})
+  names(DEG_list) <- unique(seurat_object$celltype)
+  DEG_list[sapply(DEG_list, is.null)] <- NULL
+
+  DEG_df <- as.data.frame(do.call(rbind, DEG_list))
+  
+  return(DEG_df)
+}
+
+DEG_m_response_df <- get_DEGs(seurat_object = m_seurat,
+                              group_by = "binary_response",
+                              ident.1 = "CR_SD",
+                              ident.2 = "PD")
+
+DEG_f_response_df <- get_DEGs(seurat_object = f_seurat,
+                              group_by = "binary_response",
+                              ident.1 = "CR_SD",
+                              ident.2 = "PD")
+
+# Distribution of log2FC
+hist(DEG_m_response_df$avg_log2FC, main = "Male", xlab = "avg. log2FC")
+hist(DEG_f_response_df$avg_log2FC, main = "Female", xlab = "avg. log2FC")
+
+DEG_m_response_df_sig <- DEG_m_response_df %>%
+  filter(p_val_adj < 0.01,
+         abs(avg_log2FC) > 2)
+
+DEG_f_response_df_sig <- DEG_f_response_df %>%
+  filter(p_val_adj < 0.01,
+         abs(avg_log2FC) > 2)
+
+# Plotting numbers of DEGs
+table(DEG_m_response_df_sig$celltype) %>% as.data.frame() %>%
+  ggplot(aes(x = reorder(Var1, -Freq), y = Freq, fill = Var1)) +
+    geom_bar(stat = "identity") +
+    scale_fill_manual(values = immune_fibro_celltype_col) +
+    theme_classic() +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) +
+    NoLegend() +
+    xlab("Cell type") +
+    ylab("# DEGs CR/SD vs. PD, male")
+
+table(DEG_f_response_df_sig$celltype) %>% as.data.frame() %>%
+  ggplot(aes(x = reorder(Var1, -Freq), y = Freq, fill = Var1)) +
+    geom_bar(stat = "identity") +
+    scale_fill_manual(values = immune_fibro_celltype_col) +
+    theme_classic() +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) +
+    NoLegend() +
+    xlab("Cell type") +
+    ylab("# DEGs CR/SD vs. PD, female")
+
+# Proportions of share and sex-specific DEGs by celltype
+DEG_f_response_df_sig$gene_celltype <- paste0(DEG_f_response_df_sig$feature, "_", DEG_f_response_df_sig$celltype)
+DEG_m_response_df_sig$gene_celltype <- paste0(DEG_m_response_df_sig$feature, "_", DEG_m_response_df_sig$celltype)
+DEG_f_response_df$gene_celltype <- paste0(DEG_f_response_df$feature, "_", DEG_f_response_df$celltype)
+rownames(DEG_f_response_df) <- NULL
+DEG_m_response_df$gene_celltype <- paste0(DEG_m_response_df$feature, "_", DEG_m_response_df$celltype)
+rownames(DEG_m_response_df) <- NULL
+
+all_DEGs <- merge(DEG_m_response_df, DEG_f_response_df, by = c("gene_celltype"), suffixes = c("_M", "_F"))
+
+all_DEGs$group <- ifelse(all_DEGs$gene_celltype %in% intersect(DEG_f_response_df_sig$gene_celltype, DEG_m_response_df_sig$gene_celltype), "Shared",
+                         ifelse(all_DEGs$gene_celltype %in% setdiff(DEG_f_response_df_sig$gene_celltype, DEG_m_response_df_sig$gene_celltype), "Female",
+                                ifelse(all_DEGs$gene_celltype %in% setdiff(DEG_m_response_df_sig$gene_celltype, DEG_f_response_df_sig$gene_celltype), "Male", "nonsig")))
+
+table(all_DEGs$group)
+
+# Plotting
+table(all_DEGs$celltype_M, all_DEGs$group) %>%
+  as.data.frame() %>%
+  filter(!(Var2 == "nonsig")) %>%
+  ggplot(aes(fill = Var2, y = Freq, x = Var1)) + 
+    geom_bar(position = "fill", stat = "identity") +
+    theme_classic() +
+    xlab("Cell type") +
+    scale_fill_manual(name = "Type of DEG", values = c("mediumpurple1", "goldenrod1", "ivory3"))
+
+```
+
+

@@ -1,0 +1,129 @@
+---
+title: "GSEA analysis by sex"
+author: "heinin"
+date: "2024-08-07"
+output:
+  workflowr::wflow_html:
+    code_folding: hide
+  html_notebook: default
+editor_options:
+  chunk_output_type: console
+---
+
+## Comparative Gene-Set Enrichment analysis between sexes
+
+### Libraries, helper functions, and environment variables
+
+```{r, message = F, warning = F}
+
+library(workflowr)
+library(Seurat)
+library(googlesheets4)
+library(dplyr)
+library(tidyverse)
+library(ggrepel)
+library(patchwork)
+library(scProportionTest)
+library(escape)
+
+source("/home/hnatri/GBM_sexdiff/code/CART_plot_functions.R")
+source("/home/hnatri/GBM_sexdiff/code/13384_tumor_ms_themes.R")
+
+setwd("/home/hnatri/GBM_sexdiff/")
+
+set.seed(1234)
+options(future.globals.maxSize = 30000 * 1024^2)
+reduction <- "integrated_sct_umap"
+
+```
+
+### Import data
+```{r, message = F, warning = F, fig.width = 4, fig.height = 3}
+
+immune_fibro <- readRDS("/tgen_labs/banovich/BCTCSF/Heini/13384_Tumor/13384_tumors_immune_fibro_GSEA.rds")
+GSEA_res <- readRDS("/tgen_labs/banovich/BCTCSF/Heini/13384_Tumor/13384_tumors_immune_fibro_GSEA_res.rds")
+
+# Adding sex variable
+demographics <- read.csv("/home/hnatri/GBM_sexdiff/data/13384_demographic_info.csv",
+                         row.names = 1)
+
+immune_fibro$Gender <- mapvalues(x = immune_fibro$UPN,
+                                 from = demographics$UPN,
+                                 to = demographics$GENDER)
+
+```
+
+### Differentially regulated pathways between the sexes
+```{r, message = F, warning = F, fig.width = 10, fig.height = 10}
+
+res <- immune_fibro@meta.data %>%
+  dplyr::select(c("orig.ident", "Gender", colnames(GSEA_res)))
+
+res <- data.frame(getSignificance(res, group = "Gender", fit = "Wilcoxon"))
+res$pathways <- rownames(res)
+res_sig <- res %>% filter(FDR < 0.01) %>% arrange(FDR)
+
+res_sig$pathways[grep("TGF", res_sig$pathways)]
+
+# Selected pathways
+gs4_deauth()
+selected_pathways  <- gs4_get("https://docs.google.com/spreadsheets/d/1jagg8T5KwYnx68PiruLfa4aOz67BG-dxFeA-pp5tZwQ/edit?usp=sharing")
+sheet_names(selected_pathways)
+selected_pathways <- read_sheet(selected_pathways, sheet = "Final selected paths")
+head(selected_pathways)
+
+setdiff(selected_pathways$pathways, res$pathways)
+res$type <- mapvalues(x = res$pathways,
+                      from = selected_pathways$pathways,
+                      to = selected_pathways$Type)
+
+# Barplot of top pathways
+top_delta_plot <- res_sig %>%
+  arrange(FDR, decreasing = F) %>%
+  head(n=50) %>%
+  mutate(delta = median.Male - median.Female,
+         sign = sign(delta),
+         signstr = if_else(sign == 1, "Male", "Female")) %>%
+  ggplot(aes(x = delta, y = reorder(pathways, delta), fill = signstr)) +
+    geom_bar(stat = "identity") +
+    #geom_col(width = 0.85) +
+    scale_fill_manual(values = c("orangered1", "royalblue3")) +
+    theme_classic() +
+    ylab("") +
+    xlab(expression(Delta ~ "median enrichment score"))
+
+top_delta_plot
+
+# Selected pathways from the SPP1 paper
+selected_delta_plot <- res %>%
+  filter(pathways %in% selected_pathways$pathways) %>%
+  mutate(delta = median.Male - median.Female,
+         sign = sign(delta),
+         signstr = if_else(sign == 1, "Male", "Female")) %>%
+  ggplot(aes(x = delta, y = reorder(pathways, delta), fill = signstr)) +
+    geom_bar(stat = "identity") +
+    #geom_col(width = 0.85) +
+    scale_fill_manual(values = c("orangered1", "royalblue3")) +
+    theme_classic() +
+    ylab("") +
+    xlab(expression(Delta ~ "median enrichment score")) +
+    #coord_flip() +
+    facet_grid(rows = vars(type), scales = "free_y", space = "free_y") +
+      theme(
+        plot.margin = margin(0.5, 0.5, 0.5, 0.5, unit = "cm"),
+        #plot.title = element_text(size = 15, face = "bold"),
+        strip.text.x = element_text(angle = 270, face = "bold"),
+        strip.placement = "outside",
+        axis.title.y = element_text(margin = margin(t = 0.5, b = 0.5, unit = "cm")),
+        axis.title.x = element_blank(),
+        #axis.text = element_text(size = 10),
+        #legend.position = "none",
+        panel.grid.major.x = element_blank(),
+      )
+
+selected_delta_plot
+
+```
+
+
+
