@@ -8,4 +8,10 @@ editor_options:
   chunk_output_type: console
 ---
 
-Welcome to my research website.
+### Analyzing 13384 scRNA-seq data by sex and age.
+
+Project directory in [Google Drive](https://drive.google.com/drive/folders/1ROYDURKYCvkcQQyuwjQYcgHU-MvaCAAS?usp=drive_link).
+
+1. [Initial comparison by sex](initial_comparison.html)\
+2. [Analysis by age](analyze_by_age.html)\
+3. [GSEA](GSEA.html)\

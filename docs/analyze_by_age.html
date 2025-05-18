@@ -13,7 +13,7 @@
 
 <meta name="date" content="2024-11-13" />
 
-<title>TME/leukapheresis/CSF analysis by age and gender</title>
+<title>Analysis by age and gender, TME/leukapheresis/CSF/CAR product</title>
 
 <script src="site_libs/header-attrs-2.22/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -363,8 +363,8 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">TME/leukapheresis/CSF analysis by age and
-gender</h1>
+<h1 class="title toc-ignore">Analysis by age and gender,
+TME/leukapheresis/CSF/CAR product</h1>
 <h4 class="author">heinin</h4>
 <h4 class="date">2024-11-13</h4>
 
@@ -395,13 +395,13 @@ aria-hidden="true"></span> </a>
 <div class="tab-content">
 <div id="summary" class="tab-pane fade in active">
 <p>
-<strong>Last updated:</strong> 2024-12-17
+<strong>Last updated:</strong> 2025-05-18
 </p>
 <p>
 <strong>Checks:</strong> <span
-class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 5
+class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 6
 <span class="glyphicon glyphicon-exclamation-sign text-danger"
-aria-hidden="true"></span> 2
+aria-hidden="true"></span> 1
 </p>
 <p>
 <strong>Knit directory:</strong> <code>GBM_sexdiff/</code> <span
@@ -424,21 +424,18 @@ versions</em> tab lists the development history.
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguncommittedchanges">
-<span class="glyphicon glyphicon-exclamation-sign text-danger"
-aria-hidden="true"></span> <strong>R Markdown file:</strong> uncommitted
-changes </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguptodate">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>R Markdown file:</strong> up-to-date
+</a>
 </p>
 </div>
-<div id="strongRMarkdownfilestronguncommittedchanges"
+<div id="strongRMarkdownfilestronguptodate"
 class="panel-collapse collapse">
 <div class="panel-body">
-<p>The R Markdown is untracked by Git. To know which version of the R
-Markdown file created these results, you’ll want to first commit it to
-the Git repo. If you’re still working on the analysis, you can ignore
-this warning. When you’re finished, you can run
-<code>wflow_publish</code> to commit the R Markdown file and build the
-HTML.</p>
+<p>Great! Since the R Markdown file has been committed to the Git
+repository, you know the exact version of the code that produced these
+results.</p>
 </div>
 </div>
 </div>
@@ -579,13 +576,15 @@ data/13384_demographic_info.csv
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrong071adc2">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomheininGBMsexdifftree5b16614713f101f8d713a6cc589e72b13a2917catargetblank5b16614a">
 <span class="glyphicon glyphicon-ok text-success"
-aria-hidden="true"></span> <strong>Repository version:</strong> 071adc2
+aria-hidden="true"></span> <strong>Repository version:</strong>
+<a href="https://github.com/heinin/GBM_sexdiff/tree/5b16614713f101f8d713a6cc589e72b13a2917ca" target="_blank">5b16614</a>
 </a>
 </p>
 </div>
-<div id="strongRepositoryversionstrong071adc2"
+<div
+id="strongRepositoryversionstrongahrefhttpsgithubcomheininGBMsexdifftree5b16614713f101f8d713a6cc589e72b13a2917catargetblank5b16614a"
 class="panel-collapse collapse">
 <div class="panel-body">
 <p>
@@ -594,7 +593,8 @@ and connecting the code version to the results is critical for
 reproducibility.
 </p>
 <p>
-The results in this page were generated with repository version 071adc2.
+The results in this page were generated with repository version
+<a href="https://github.com/heinin/GBM_sexdiff/tree/5b16614713f101f8d713a6cc589e72b13a2917ca" target="_blank">5b16614</a>.
 See the <em>Past versions</em> tab to see a history of the changes made
 to the R Markdown and HTML files.
 </p>
@@ -608,14 +608,8 @@ depends on. Below is the status of the Git repository when the results
 were generated:
 </p>
 <pre><code>
-Untracked files:
-    Untracked:  analysis/GSEA.Rmd
-    Untracked:  analysis/analyze_by_age.Rmd
-    Untracked:  analysis/initial_comparison.Rmd
-    Untracked:  code/13384_age_sex_themes.R
-    Untracked:  code/13384_tumor_ms_themes.R
-    Untracked:  code/CART_plot_functions.R
-    Untracked:  data/13384_demographic_info.csv
+Unstaged changes:
+    Modified:   analysis/index.Rmd
 
 </code></pre>
 <p>
@@ -630,10 +624,74 @@ have uncommitted changes.
 <hr>
 </div>
 <div id="versions" class="tab-pane fade">
+
 <p>
-There are no past versions. Publish this analysis with
-<code>wflow_publish()</code> to start tracking its development.
+These are the previous versions of the repository in which changes were
+made to the R Markdown (<code>analysis/analyze_by_age.Rmd</code>) and
+HTML (<code>docs/analyze_by_age.html</code>) files. If you’ve configured
+a remote Git repository (see <code>?wflow_git_remote</code>), click on
+the hyperlinks in the table below to view the files as they were in that
+past version.
 </p>
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+File
+</th>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+<th>
+Message
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/heinin/GBM_sexdiff/blob/5b16614713f101f8d713a6cc589e72b13a2917ca/analysis/analyze_by_age.Rmd" target="_blank">5b16614</a>
+</td>
+<td>
+heinin
+</td>
+<td>
+2025-05-18
+</td>
+<td>
+updated the analysis
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/heinin/GBM_sexdiff/5b16614713f101f8d713a6cc589e72b13a2917ca/docs/analyze_by_age.html" target="_blank">5b16614</a>
+</td>
+<td>
+heinin
+</td>
+<td>
+2025-05-18
+</td>
+<td>
+updated the analysis
+</td>
+</tr>
+</tbody>
+</table>
+</div>
 <hr>
 </div>
 </div>
@@ -812,6 +870,43 @@ ct_prop_res</code></pre>
     theme(panel.background = element_rect(colour = &quot;gray88&quot;)) +
     theme(plot.margin = margin(0.3, 0.3, 0.3,0.3, &quot;cm&quot;))</code></pre>
 <p><img src="figure/analyze_by_age.Rmd/unnamed-chunk-3-1.png" width="576" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-3-1">
+Past versions of unnamed-chunk-3-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-3-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/heinin/GBM_sexdiff/blob/5b16614713f101f8d713a6cc589e72b13a2917ca/docs/figure/analyze_by_age.Rmd/unnamed-chunk-3-1.png" target="_blank">5b16614</a>
+</td>
+<td>
+heinin
+</td>
+<td>
+2025-05-18
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <p>Plotting cell type proportions by age</p>
 <pre class="r"><code>prop_table %&gt;%
   ggplot(aes(x = Age, y = Freq, color = celltype)) +
@@ -826,6 +921,43 @@ ct_prop_res</code></pre>
     geom_smooth(method = &quot;lm&quot;, se = T, formula = y ~ x) +
     facet_wrap(~celltype, scales = &quot;free&quot;)</code></pre>
 <p><img src="figure/analyze_by_age.Rmd/unnamed-chunk-4-1.png" width="1152" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-4-1">
+Past versions of unnamed-chunk-4-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-4-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/heinin/GBM_sexdiff/blob/5b16614713f101f8d713a6cc589e72b13a2917ca/docs/figure/analyze_by_age.Rmd/unnamed-chunk-4-1.png" target="_blank">5b16614</a>
+</td>
+<td>
+heinin
+</td>
+<td>
+2025-05-18
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 </div>
 <div id="cell-type-proportions-by-gender-and-age"
 class="section level3">
@@ -919,6 +1051,43 @@ ct_prop_res_gender</code></pre>
     theme(panel.background = element_rect(colour = &quot;gray88&quot;)) +
     theme(plot.margin = margin(0.3, 0.3, 0.3,0.3, &quot;cm&quot;))</code></pre>
 <p><img src="figure/analyze_by_age.Rmd/unnamed-chunk-5-1.png" width="480" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-5-1">
+Past versions of unnamed-chunk-5-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-5-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/heinin/GBM_sexdiff/blob/5b16614713f101f8d713a6cc589e72b13a2917ca/docs/figure/analyze_by_age.Rmd/unnamed-chunk-5-1.png" target="_blank">5b16614</a>
+</td>
+<td>
+heinin
+</td>
+<td>
+2025-05-18
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>ct_prop_res_gender %&gt;% dplyr::select(c(&quot;celltype&quot;, &quot;R2&quot;, &quot;gender&quot;)) %&gt;%
   ggplot(aes(x = celltype, y = R2, fill = celltype)) +
     geom_bar(stat=&quot;identity&quot;, position=&#39;stack&#39;, width = 0.8) +
@@ -931,6 +1100,43 @@ ct_prop_res_gender</code></pre>
     theme(plot.margin = margin(0.3, 0.3, 0.3,0.3, &quot;cm&quot;)) +
     facet_wrap(~gender, scales = &quot;fixed&quot;)</code></pre>
 <p><img src="figure/analyze_by_age.Rmd/unnamed-chunk-6-1.png" width="1152" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-6-1">
+Past versions of unnamed-chunk-6-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-6-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/heinin/GBM_sexdiff/blob/5b16614713f101f8d713a6cc589e72b13a2917ca/docs/figure/analyze_by_age.Rmd/unnamed-chunk-6-1.png" target="_blank">5b16614</a>
+</td>
+<td>
+heinin
+</td>
+<td>
+2025-05-18
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <p>Plotting cell type proportions by age and gender</p>
 <pre class="r"><code>prop_table %&gt;%
   ggplot(aes(x = Age, y = Freq, color = celltype)) +
@@ -945,6 +1151,43 @@ ct_prop_res_gender</code></pre>
     geom_smooth(method = &quot;lm&quot;, se = T, formula = y ~ x) +
     facet_wrap(~celltype+Gender, scales = &quot;free&quot;, ncol = 6)</code></pre>
 <p><img src="figure/analyze_by_age.Rmd/unnamed-chunk-7-1.png" width="1920" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-7-1">
+Past versions of unnamed-chunk-7-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-7-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/heinin/GBM_sexdiff/blob/5b16614713f101f8d713a6cc589e72b13a2917ca/docs/figure/analyze_by_age.Rmd/unnamed-chunk-7-1.png" target="_blank">5b16614</a>
+</td>
+<td>
+heinin
+</td>
+<td>
+2025-05-18
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 </div>
 <div id="multiple-variate-regression-by-age-and-gender"
 class="section level3">
@@ -1013,6 +1256,43 @@ corr_matrix &lt;- round(cor(prop_table_corr), 2)
 ggcorrplot(corr_matrix, hc.order = TRUE, type = &quot;lower&quot;,
           lab = TRUE, lab_size = 3)</code></pre>
 <p><img src="figure/analyze_by_age.Rmd/unnamed-chunk-8-1.png" width="960" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-8-1">
+Past versions of unnamed-chunk-8-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-8-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/heinin/GBM_sexdiff/blob/5b16614713f101f8d713a6cc589e72b13a2917ca/docs/figure/analyze_by_age.Rmd/unnamed-chunk-8-1.png" target="_blank">5b16614</a>
+</td>
+<td>
+heinin
+</td>
+<td>
+2025-05-18
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>plot_cts &lt;- ct_prop_res_multivar %&gt;% filter(pval_intercept &lt; 0.1) %&gt;%
   dplyr::select(celltype) %&gt;%
   unlist()
@@ -1031,6 +1311,43 @@ prop_table %&gt;%
     geom_smooth(method = &quot;lm&quot;, se = T, formula = y ~ x) +
     facet_wrap(~celltype+Gender, scales = &quot;free&quot;, ncol = 4)</code></pre>
 <p><img src="figure/analyze_by_age.Rmd/unnamed-chunk-9-1.png" width="960" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-9-1">
+Past versions of unnamed-chunk-9-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-9-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/heinin/GBM_sexdiff/blob/5b16614713f101f8d713a6cc589e72b13a2917ca/docs/figure/analyze_by_age.Rmd/unnamed-chunk-9-1.png" target="_blank">5b16614</a>
+</td>
+<td>
+heinin
+</td>
+<td>
+2025-05-18
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 </div>
 </div>
 <div id="leukapheresis-pbmcs" class="section level2">
@@ -1052,6 +1369,43 @@ prop_table %&gt;%
   NoAxes() +
   coord_fixed(1)</code></pre>
 <p><img src="figure/analyze_by_age.Rmd/unnamed-chunk-10-1.png" width="576" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-10-1">
+Past versions of unnamed-chunk-10-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-10-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/heinin/GBM_sexdiff/blob/5b16614713f101f8d713a6cc589e72b13a2917ca/docs/figure/analyze_by_age.Rmd/unnamed-chunk-10-1.png" target="_blank">5b16614</a>
+</td>
+<td>
+heinin
+</td>
+<td>
+2025-05-18
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>DimPlot(leukPBMC,
         group.by = &quot;celltype.l2&quot;,
         cols = leukPBMC_celltype_2_col,
@@ -1069,6 +1423,43 @@ prop_table %&gt;%
   NoAxes() +
   coord_fixed(1)</code></pre>
 <p><img src="figure/analyze_by_age.Rmd/unnamed-chunk-10-2.png" width="576" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-10-2">
+Past versions of unnamed-chunk-10-2.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-10-2" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/heinin/GBM_sexdiff/blob/5b16614713f101f8d713a6cc589e72b13a2917ca/docs/figure/analyze_by_age.Rmd/unnamed-chunk-10-2.png" target="_blank">5b16614</a>
+</td>
+<td>
+heinin
+</td>
+<td>
+2025-05-18
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>DimPlot(leukPBMC,
         group.by = &quot;celltype.l3&quot;,
         #cols = leukPBMC_celltype_col,
@@ -1086,6 +1477,43 @@ prop_table %&gt;%
   NoAxes() +
   coord_fixed(1)</code></pre>
 <p><img src="figure/analyze_by_age.Rmd/unnamed-chunk-10-3.png" width="576" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-10-3">
+Past versions of unnamed-chunk-10-3.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-10-3" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/heinin/GBM_sexdiff/blob/5b16614713f101f8d713a6cc589e72b13a2917ca/docs/figure/analyze_by_age.Rmd/unnamed-chunk-10-3.png" target="_blank">5b16614</a>
+</td>
+<td>
+heinin
+</td>
+<td>
+2025-05-18
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <p>Cell numbers by cell type</p>
 <pre class="r"><code>table(leukPBMC$celltype.l2) %&gt;%
   as.data.frame() %&gt;%
@@ -1096,6 +1524,44 @@ prop_table %&gt;%
   xlab(&quot;Cell type (l2)&quot;) +
   ylab(&quot;# cells&quot;)</code></pre>
 <p><img src="figure/analyze_by_age.Rmd/unnamed-chunk-11-1.png" width="576" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-11-1">
+Past versions of unnamed-chunk-11-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-11-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/heinin/GBM_sexdiff/blob/5b16614713f101f8d713a6cc589e72b13a2917ca/docs/figure/analyze_by_age.Rmd/unnamed-chunk-11-1.png" target="_blank">5b16614</a>
+</td>
+<td>
+heinin
+</td>
+<td>
+2025-05-18
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>Only analyzing cell types with &gt;10 samples with &gt;10 cells</p>
 <div id="cell-type-proportions-by-age-1" class="section level3">
 <h3>Cell type proportions by age</h3>
 <pre class="r"><code># Linear regression by celltype, not stratifying by gender
@@ -1171,7 +1637,44 @@ ct_prop_res</code></pre>
     theme(panel.background = element_rect(colour = &quot;gray88&quot;)) +
     theme(plot.margin = margin(0.3, 0.3, 0.3,0.3, &quot;cm&quot;)) +
     RotatedAxis()</code></pre>
-<p><img src="figure/analyze_by_age.Rmd/unnamed-chunk-12-1.png" width="576" style="display: block; margin: auto;" /></p>
+<p><img src="figure/analyze_by_age.Rmd/unnamed-chunk-13-1.png" width="576" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-13-1">
+Past versions of unnamed-chunk-13-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-13-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/heinin/GBM_sexdiff/blob/5b16614713f101f8d713a6cc589e72b13a2917ca/docs/figure/analyze_by_age.Rmd/unnamed-chunk-13-1.png" target="_blank">5b16614</a>
+</td>
+<td>
+heinin
+</td>
+<td>
+2025-05-18
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <p>Plotting cell type proportions by age</p>
 <pre class="r"><code>prop_table %&gt;%
   ggplot(aes(x = Age, y = Freq, color = celltype)) +
@@ -1185,7 +1688,44 @@ ct_prop_res</code></pre>
     theme(plot.margin = margin(0.3, 0.3, 0.3,0.3, &quot;cm&quot;)) +
     geom_smooth(method = &quot;lm&quot;, se = T, formula = y ~ x) +
     facet_wrap(~celltype, scales = &quot;free&quot;)</code></pre>
-<p><img src="figure/analyze_by_age.Rmd/unnamed-chunk-13-1.png" width="1536" style="display: block; margin: auto;" /></p>
+<p><img src="figure/analyze_by_age.Rmd/unnamed-chunk-14-1.png" width="1536" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-14-1">
+Past versions of unnamed-chunk-14-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-14-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/heinin/GBM_sexdiff/blob/5b16614713f101f8d713a6cc589e72b13a2917ca/docs/figure/analyze_by_age.Rmd/unnamed-chunk-14-1.png" target="_blank">5b16614</a>
+</td>
+<td>
+heinin
+</td>
+<td>
+2025-05-18
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 </div>
 <div id="cell-type-proportions-by-gender-and-age-1"
 class="section level3">
@@ -1286,7 +1826,44 @@ ct_prop_res_gender</code></pre>
     geom_abline(intercept = 0, slope = 1, linewidth = 0.5, linetype = &quot;dashed&quot;) +
     theme(panel.background = element_rect(colour = &quot;gray88&quot;)) +
     theme(plot.margin = margin(0.3, 0.3, 0.3,0.3, &quot;cm&quot;))</code></pre>
-<p><img src="figure/analyze_by_age.Rmd/unnamed-chunk-14-1.png" width="480" style="display: block; margin: auto;" /></p>
+<p><img src="figure/analyze_by_age.Rmd/unnamed-chunk-15-1.png" width="480" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-15-1">
+Past versions of unnamed-chunk-15-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-15-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/heinin/GBM_sexdiff/blob/5b16614713f101f8d713a6cc589e72b13a2917ca/docs/figure/analyze_by_age.Rmd/unnamed-chunk-15-1.png" target="_blank">5b16614</a>
+</td>
+<td>
+heinin
+</td>
+<td>
+2025-05-18
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>ct_prop_res_gender %&gt;% dplyr::select(c(&quot;celltype&quot;, &quot;R2&quot;, &quot;gender&quot;)) %&gt;%
   ggplot(aes(x = celltype, y = R2, fill = celltype)) +
     geom_bar(stat=&quot;identity&quot;, position=&#39;stack&#39;, width = 0.8) +
@@ -1299,7 +1876,44 @@ ct_prop_res_gender</code></pre>
     theme(plot.margin = margin(0.3, 0.3, 0.3,0.3, &quot;cm&quot;)) +
     facet_wrap(~gender, scales = &quot;fixed&quot;) +
   RotatedAxis()</code></pre>
-<p><img src="figure/analyze_by_age.Rmd/unnamed-chunk-15-1.png" width="1152" style="display: block; margin: auto;" /></p>
+<p><img src="figure/analyze_by_age.Rmd/unnamed-chunk-16-1.png" width="1152" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-16-1">
+Past versions of unnamed-chunk-16-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-16-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/heinin/GBM_sexdiff/blob/5b16614713f101f8d713a6cc589e72b13a2917ca/docs/figure/analyze_by_age.Rmd/unnamed-chunk-16-1.png" target="_blank">5b16614</a>
+</td>
+<td>
+heinin
+</td>
+<td>
+2025-05-18
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <p>Plotting cell type proportions by age and gender</p>
 <pre class="r"><code>prop_table %&gt;%
   ggplot(aes(x = Age, y = Freq, color = celltype)) +
@@ -1313,7 +1927,44 @@ ct_prop_res_gender</code></pre>
     theme(plot.margin = margin(0.3, 0.3, 0.3,0.3, &quot;cm&quot;)) +
     geom_smooth(method = &quot;lm&quot;, se = T, formula = y ~ x) +
     facet_wrap(~celltype+Gender, scales = &quot;free&quot;, ncol = 6)</code></pre>
-<p><img src="figure/analyze_by_age.Rmd/unnamed-chunk-16-1.png" width="1920" style="display: block; margin: auto;" /></p>
+<p><img src="figure/analyze_by_age.Rmd/unnamed-chunk-17-1.png" width="1920" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-17-1">
+Past versions of unnamed-chunk-17-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-17-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/heinin/GBM_sexdiff/blob/5b16614713f101f8d713a6cc589e72b13a2917ca/docs/figure/analyze_by_age.Rmd/unnamed-chunk-17-1.png" target="_blank">5b16614</a>
+</td>
+<td>
+heinin
+</td>
+<td>
+2025-05-18
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 </div>
 <div id="multiple-variate-regression-by-age-and-gender-1"
 class="section level3">
@@ -1402,7 +2053,7 @@ prop_table %&gt;%
     theme(plot.margin = margin(0.3, 0.3, 0.3,0.3, &quot;cm&quot;)) +
     geom_smooth(method = &quot;lm&quot;, se = T, formula = y ~ x) +
     facet_wrap(~celltype+Gender, scales = &quot;free&quot;, ncol = 4)</code></pre>
-<p><img src="figure/analyze_by_age.Rmd/unnamed-chunk-18-1.png" width="960" style="display: block; margin: auto;" /></p>
+<p><img src="figure/analyze_by_age.Rmd/unnamed-chunk-19-1.png" width="960" style="display: block; margin: auto;" /></p>
 </div>
 </div>
 <div id="gene-expression-correlation-by-age-gender-and-cell-type"
